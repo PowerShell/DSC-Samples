@@ -1,0 +1,7 @@
+# About topics have different line length requirements; their text is
+# automatically wrapped at 80 characters, so it's preferable to control
+# the wrapping here instead.
+extends: ../../.markdownlint.json
+MD010:
+  code_blocks:    false
+  spaces_per_tab: 2

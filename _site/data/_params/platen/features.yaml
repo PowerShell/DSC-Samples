@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=https://platen.io/modules/platen/config/site/config/schema.json#/properties/features
+shoelace:
+  always_load: true
+  icons:
+    always_load_libraries:
+      - boxicons
+search:
+  use_legacy: false
+
+dscs:
+  enabled: true
+  partials:
+    title: dscs/feature/title

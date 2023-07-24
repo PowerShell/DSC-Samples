@@ -1,0 +1,61 @@
+{
+    "manifestVersion": "1.0",
+    "type": "TSToy.Example/gotstoy",
+    "version": "0.1.0",
+    "description": "A DSC Resource written in go to manage TSToy.",
+    "get": {
+        "executable": "gotstoy",
+        "args": ["get"],
+        "input": "stdin"
+    },
+    "set": {
+        "executable": "gotstoy",
+        "args": ["set"],
+        "input": "stdin",
+        "preTest": true,
+        "return": "state"
+    },
+    "schema": {
+        "embedded": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "title": "Golang TSToy Resource",
+            "type": "object",
+            "required": [
+                "scope"
+            ],
+            "properties": {
+                "scope": {
+                    "title": "Target configuration scope",
+                    "description": "Defines which of TSToy's config files to manage.",
+                    "type": "string",
+                    "enum": [
+                        "machine",
+                        "user"
+                    ]
+                },
+                "ensure": {
+                    "title": "Ensure configuration file existence",
+                    "description": "Defines whether the config file should exist.",
+                    "type": "string",
+                    "enum": [
+                        "present",
+                        "absent"
+                    ],
+                    "default": "present"
+                },
+                "updateAutomatically": {
+                    "title": "Should update automatically",
+                    "description": "Indicates whether TSToy should check for updates when it starts.",
+                    "type": "boolean"
+                },
+                "updateFrequency": {
+                    "title": "Update check frequency",
+                    "description": "Indicates how many days TSToy should wait before checking for updates.",
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 90
+                }
+            }
+        }
+    }
+}
