@@ -1,0 +1,44 @@
+# yaml-language-server: $schema=https://platen.io/schemas/config/schema.json
+# Update to your own settings for URL/title
+baseURL:    https://powershell.github.io/DSC-Samples
+title:      DSC Samples
+contentDir: ../docs
+themesDir:  ../samples
+
+menu:
+  after:
+    - name:   DSC Documentation
+      url:    https://learn.microsoft.com/powershell/dsc/overview?view=dsc-3.0
+      pre:    <sl-icon name="bxl-microsoft" library="boxicons"></sl-icon>
+      weight: 10
+    - name:   Samples Source
+      url:    https://github.com/PowerShell/DSC-Samples
+      pre:    <sl-icon name="bxl-github" library="boxicons"></sl-icon>
+      weight: 20
+
+params:
+  description: Sample implementations for Desired State Configuration v3.
+
+markup:
+  defaultMarkdownHandler: goldmark
+  goldmark:
+    renderer:
+      unsafe: true
+    parser:
+      wrapStandAloneImageWithinParagraph: false
+      attribute:
+        block: true
+  highlight:
+    style: witchhazel
+
+module:
+  replacements: |
+    github.com/PowerShell/DSC-Samples/go/resources/first -> go/resources/first
+  imports:
+    - path: github.com/platenio/platen/modules/platen
+    - path: github.com/PowerShell/DSC-Samples/go/resources/first
+      mounts:
+        - source: docs
+          target: content/tutorials/first-resource/go
+        - source: docs
+          target: content/languages/go/first-resource

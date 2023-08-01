@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=https://platen.io/modules/platen/config/site/config/schema.json#/properties/markup
+details:
+  use_legacy: false
+  warn_on_legacy: false
+buttons:
+  use_legacy: false
+  warn_on_legacy: false
+tabs:
+  use_legacy: false
+  warn_on_legacy: false

@@ -1,0 +1,40 @@
+{{/*  Copyright (c) Microsoft Corporation.  */}}
+{{/*  Licensed under the MIT License.  */}}
+
+{{- $params  := .     -}}
+{{- $context := .     -}}
+{{- $title   := ""    -}}
+
+{{- $isTarget := false -}}
+{{- $info     := dict  -}}
+
+{{- if reflect.IsMap $params -}}
+    {{- $context = $params.Context -}}
+    {{- with $Options := $context.Params.dscs -}}
+        {{- $InTutorials := hasPrefix $context.RelPermalink "/DSC-Samples/tutorials/" -}}
+        {{- $InLanguages := hasPrefix $context.RelPermalink "/DSC-Samples/languages/" -}}
+        {{- $menuTitle   := ""                                                        -}}
+
+        {{- if and $InTutorials (isset $Options "tutorials_title") -}}
+            {{- $menuTitle = $Options.tutorials_title | default "" -}}
+        {{- else if and $InLanguages (isset $Options "languages_title") -}}
+            {{- $menuTitle = $Options.languages_title | default "" -}}
+        {{- else if isset $Options "menu_title" -}}
+            {{- $menuTitle = $Options.menu_title | default "" -}}
+        {{- end -}}
+
+        {{- if and $params.ForMenu (ne $menuTitle "") -}}
+            {{- $title = $menuTitle -}}
+        {{- end -}}
+    {{- end -}}
+{{- end -}}
+
+{{- with $info -}}
+    {{- warnf "Got title '%s' for '%s' with params: %s"
+            $title
+            $context.RelPermalink
+            ($info | jsonify (dict "indent" "  " "noHTMLEscape" true))
+    -}}
+{{- end -}}
+
+{{- return $title -}}

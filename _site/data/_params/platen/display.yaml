@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://platen.io/modules/platen/config/site/display/settings/schema.json
+table_of_contents:
+  minimum_level: 1
+  maximum_level: 6
+  use_legacy: false
+date_format: "January 2, 2006"
+menu:
+  root_section: /
+  languages_icon:
+    use_legacy: false
+  theme_options:
+    enabled: true
+    mode_selection:
+      enabled: true
+mobile:
+  menu_control:
+    use_legacy: false
+  toc_control:
+    use_legacy: false
+footer:
+  last_edited_on:
+    use_legacy: false
+  edit_this_page:
+    use_legacy: false
+header:
+  title_as_heading: true

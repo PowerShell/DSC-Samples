@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=https://platen.io/modules/platen/config/site/repository/settings/schema.json
+url:          https://github.com/PowerShell/DSC-Samples
+commit_path:  commit
+edit_path:    edit/main
+content_root: docs
+mounted_paths:
+  - source: go/resources/first/docs
+    target: tutorials/first-resource/go
+  - source: go/resources/first/docs
+    target: languages/go/first-resource

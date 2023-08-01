@@ -1,0 +1,15 @@
+$schema: https://schemas.microsoft.com/dsc/2023/03/configuration.schema.json
+resources:
+- name: All Users Configuration
+  type: TSToy.Example/gotstoy
+  properties:
+    scope:  machine
+    ensure: present
+    updateAutomatically: false
+- name: Current User Configuration
+  type: TSToy.Example/gotstoy
+  properties:
+    scope:  user
+    ensure: present
+    updateAutomatically: true
+    updateFrequency: 30
