@@ -67,7 +67,7 @@ jobs:
         run: |
           Invoke-Build -Task BuildSite -SiteBaseUrl https://powershell.github.io/DSC-Samples/
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-pages-artifact@v2
         with:
           path: ./.site/public
   # Deployment job
