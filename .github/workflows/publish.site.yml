@@ -25,8 +25,10 @@ jobs:
         with:
           fetch-depth: 0 # Fetch all history for .GitInfo and .Lastmod
       - name: Setup Pages
+        id:   pages
         uses: actions/configure-pages@v3
       - name: Setup Hugo
+        id:   hugo
         uses: peaceiris/actions-hugo@v2
         with:
           hugo-version: latest
@@ -65,7 +67,7 @@ jobs:
           HUGO_ENVIRONMENT: production
           HUGO_ENV: production
         run: |
-          Invoke-Build -Task BuildSite -SiteBaseUrl https://powershell.github.io/DSC-Samples/
+          Invoke-Build -Task BuildSite -SiteBaseUrl "${{ steps.pages.outputs.base_url }}/"
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
         with:
