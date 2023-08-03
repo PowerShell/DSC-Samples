@@ -31,22 +31,22 @@ jobs:
         with:
           hugo-version: latest
           extended:     true
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: latest
-          cache:        npm
-          # The action defaults to search for the dependency file (package-lock.json,
-          # npm-shrinkwrap.json or yarn.lock) in the repository root, and uses its
-          # hash as a part of the cache key.
-          # https://github.com/actions/setup-node/blob/main/docs/advanced-usage.md#caching-packages-data
-          cache-dependency-path: '**/package-lock.json'
-      - name: Install PostCSS
-        run: |
-          cd ./Site
-          npm ci
-          npm ls
-          cd ..
+      # - name: Setup Node
+      #   uses: actions/setup-node@v3
+      #   with:
+      #     node-version: latest
+      #     cache:        npm
+      #     # The action defaults to search for the dependency file (package-lock.json,
+      #     # npm-shrinkwrap.json or yarn.lock) in the repository root, and uses its
+      #     # hash as a part of the cache key.
+      #     # https://github.com/actions/setup-node/blob/main/docs/advanced-usage.md#caching-packages-data
+      #     cache-dependency-path: '**/package-lock.json'
+      # - name: Install PostCSS
+      #   run: |
+      #     cd ./Site
+      #     npm ci
+      #     npm ls
+      #     cd ..
       - name: Setup PowerShell module cache
         id: cacher
         uses: actions/cache@v3
@@ -67,18 +67,18 @@ jobs:
         run: |
           Invoke-Build -Task BuildSite -SiteBaseUrl https://powershell.github.io/DSC-Samples/
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-pages-artifact@v2
         with:
           path: ./.site/public
   # Deployment job
-  # deploy:
-  #   if: github.ref == 'refs/heads/main'
-  #   environment:
-  #     name: github-pages
-  #     url: ${{ steps.deployment.outputs.page_url }}
-  #   runs-on: ubuntu-latest
-  #   needs: build
-  #   steps:
-  #     - name: Deploy to GitHub Pages
-  #       id: deployment
-  #       uses: actions/deploy-pages@v2
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
