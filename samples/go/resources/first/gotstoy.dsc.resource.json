@@ -3,6 +3,7 @@
     "type": "TSToy.Example/gotstoy",
     "version": "0.1.0",
     "description": "A DSC Resource written in go to manage TSToy.",
+    "tags": ["tstoy", "example", "go"],
     "get": {
         "executable": "gotstoy",
         "args": ["get"],

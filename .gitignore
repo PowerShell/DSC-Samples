@@ -1,18 +1,12 @@
-Projects/Modules/Documentarian*/[0-9]*.[0-9]*.[0-9]*/
 # Source/Styles/*
-# !Source/Styles/PowerShell-Docs/
-# !Source/Styles/Vocab/
 .vscode/styles
-PackagedStyles
 .vale
 
 # Hugo ignores
-Site/public
-Site/assets/vale
-Projects/Hugo/**/public
+.site/public
 **/resources/_gen
 **/.hugo_build.lock
 **/node_modules
 
 # Test ignores
-Projects/Modules/**/*.Results.xml
+**/*.Results.xml

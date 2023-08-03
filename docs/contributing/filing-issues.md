@@ -37,7 +37,7 @@ factual errors, and grammar, use the following button:
 ``````columns { #new-tutorial-info }
 ```column { grow=2 }
 To request a new tutorial, consider the learning goals for the tutorial. Why is
-it needed? What gap will it fgill? Who is the intended audience? What scenario
+it needed? What gap will it fill? Who is the intended audience? What scenario
 will it address?
 
 When you have a concrete idea for the new tutorial, use the following button
