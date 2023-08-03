@@ -31,22 +31,22 @@ jobs:
         with:
           hugo-version: latest
           extended:     true
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: latest
-          cache:        npm
-          # The action defaults to search for the dependency file (package-lock.json,
-          # npm-shrinkwrap.json or yarn.lock) in the repository root, and uses its
-          # hash as a part of the cache key.
-          # https://github.com/actions/setup-node/blob/main/docs/advanced-usage.md#caching-packages-data
-          cache-dependency-path: '**/package-lock.json'
-      - name: Install PostCSS
-        run: |
-          cd ./Site
-          npm ci
-          npm ls
-          cd ..
+      # - name: Setup Node
+      #   uses: actions/setup-node@v3
+      #   with:
+      #     node-version: latest
+      #     cache:        npm
+      #     # The action defaults to search for the dependency file (package-lock.json,
+      #     # npm-shrinkwrap.json or yarn.lock) in the repository root, and uses its
+      #     # hash as a part of the cache key.
+      #     # https://github.com/actions/setup-node/blob/main/docs/advanced-usage.md#caching-packages-data
+      #     cache-dependency-path: '**/package-lock.json'
+      # - name: Install PostCSS
+      #   run: |
+      #     cd ./Site
+      #     npm ci
+      #     npm ls
+      #     cd ..
       - name: Setup PowerShell module cache
         id: cacher
         uses: actions/cache@v3
