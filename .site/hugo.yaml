@@ -19,7 +19,6 @@ menu:
       url:    https://github.com/PowerShell/DSC-Samples
       pre:    <sl-icon name="bxl-github" library="boxicons"></sl-icon>
       weight: 30
-
 params:
   description: Sample implementations for Desired State Configuration v3.
 
