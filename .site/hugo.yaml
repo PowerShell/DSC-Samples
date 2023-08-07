@@ -12,7 +12,7 @@ menu:
       pre:    <sl-icon name="bxl-microsoft" library="boxicons"></sl-icon>
       weight: 10
     - name:   DSC Repository
-      url:    https://learn.microsoft.com/powershell/dsc/overview?view=dsc-3.0
+      url:    https://github.com/PowerShell/DSC
       pre:    <sl-icon name="bxl-github" library="boxicons"></sl-icon>
       weight: 20
     - name:   Samples Source
