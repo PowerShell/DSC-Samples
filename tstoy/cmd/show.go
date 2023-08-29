@@ -6,7 +6,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/PowerShell/DSC-Samples/app/config"
+	"github.com/PowerShell/DSC-Samples/tstoy/config"
 	"github.com/TylerBrock/colorjson"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"

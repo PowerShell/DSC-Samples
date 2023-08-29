@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/PowerShell/DSC-Samples/app/config"
+	"github.com/PowerShell/DSC-Samples/tstoy/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
