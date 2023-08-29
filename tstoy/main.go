@@ -3,7 +3,7 @@
 
 package main
 
-import "github.com/PowerShell/DSC-Samples/app/cmd"
+import "github.com/PowerShell/DSC-Samples/tstoy/cmd"
 
 func main() {
 	cmd.Execute()

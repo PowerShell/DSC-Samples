@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/PowerShell/DSC-Samples/app/config"
+	"github.com/PowerShell/DSC-Samples/tstoy/config"
 	"github.com/spf13/cobra"
 )
 

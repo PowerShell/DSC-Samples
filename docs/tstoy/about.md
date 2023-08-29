@@ -15,9 +15,29 @@ manage the configuration files.
 
 ## Installing TSToy
 
-[Download the latest release][01] for your operating system. After you download the release
-archive, you need to expand the archive and add it to your PATH. You'll need the application while
-following any of the tutorials in this section.
+```````````tabs
+---
+id:        install-instructions
+placement: start
+---
+``````tab { name="From Archive" }
+[Download the latest release][t1] for your operating system. After you download
+the release archive, you need to expand the archive and add it to your `PATH`.
+You'll need the application while following any of the tutorials in this
+section.
+
+[t1]: https://github.com/PowerShell/DSC-Samples/tree/main/tstoy/latest
+``````
+
+``````tab { name="With Go" }
+If you have Go installed on your system, you can use `go install` to get the
+latest version of the application and install it to your `GOPATH`.
+
+```sh
+go install github.com/PowerShell/DSC-Samples/tstoy@latest
+```
+``````
+```````````
 
 <!-- Add tabbed examples for doing so -->
 
@@ -30,29 +50,44 @@ tstoy
 
 You can enable shell completions for the application to make interacting with it easier.
 
+```````````tabs
+---
+id: enable-shell-completions
+placement: start
+class: shell-completion
+---
+``````tab { name="Bash" }
 ```bash
 # bash
 tstoy completion bash --help
 source <(tstoy completion bash)
 ```
+``````
 
-```sh
+``````tab { name="fish" }
+```fish
 # fish
 tstoy completion fish --help
 tstoy completion fish | source
 ```
+``````
 
+``````tab { name="PowerShell" }
 ```powershell
 # PowerShell
 tstoy completion powershell --help
 tstoy completion powershell | Out-String | Invoke-Expression
 ```
+``````
 
+``````tab { name="ZSH" }
 ```zsh
 # zsh
 tstoy completion zsh --help
 source <(tstoy completion zsh)
 ```
+``````
+```````````
 
 ## TSToy configuration
 
@@ -106,7 +141,10 @@ tstoy show path machine
 tstoy show path user
 ```
 
-``````tabs { #command-output}
+``````tabs
+---
+id: command-output
+---
 ````tab { name="On Windows" }
 ```powershell
 tstoy show path
@@ -188,6 +226,3 @@ tstoy show --only machine,user
 Machine configuration: {}
 User configuration: {}
 ```
-
-<!-- Fictional URL -->
-[01]: https://github.com/MicrosoftDocs/DSC-Examples/releases/tag/app%2Fv1.0.0

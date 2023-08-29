@@ -16,9 +16,9 @@ builds:
       - darwin
     ldflags:
       - -s -w
-      - -X github.com/PowerShell/DSC-Samples/app/cmd.version={{.Version}}
-      - -X github.com/PowerShell/DSC-Samples/app/cmd.commit={{.ShortCommit}}
-      - -X github.com/PowerShell/DSC-Samples/app/cmd.date={{.CommitDate}}
+      - -X github.com/PowerShell/DSC-Samples/tstoy/cmd.version={{.Version}}
+      - -X github.com/PowerShell/DSC-Samples/tstoy/cmd.commit={{.ShortCommit}}
+      - -X github.com/PowerShell/DSC-Samples/tstoy/cmd.date={{.CommitDate}}
 
 archives:
   - format: tar.gz
@@ -44,7 +44,6 @@ changelog:
     exclude:
       - '^docs:'
       - '^test:'
-
 # The lines beneath this are called `modelines`. See `:help modeline`
 # Feel free to remove those if you don't want/use them.
 # yaml-language-server: $schema=https://goreleaser.com/static/schema.json

@@ -16,12 +16,43 @@ function Build-Project {
     param(
         [switch]$All
     )
-    if ($All) {
-        goreleaser release --skip-publish --skip-announce --skip-validate --clean --release-notes ./RELEASE_NOTES.md
-    } else {
-        goreleaser build --snapshot --clean --single-target
+
+    begin {
+        [string[]]$Arguments = @(
+            '--clean'
+            '--snapshot'
+        )
+        $DistFolder   = "$PSScriptRoot/dist"
+        $LatestFolder = "$PSScriptRoot/latest"
     }
-    Get-Command "./dist/tstoy*/tstoy*" -ErrorAction Stop
+    process {
+        if ($All) {
+            $Arguments += @(
+                '--skip-publish'
+                '--skip-announce'
+                '--skip-validate'
+            )
+            goreleaser release @Arguments
+            
+            if (Test-Path $LatestFolder) {
+                Remove-Item -Path $LatestFolder/* -Force -Recurse
+            } else {
+                mkdir $LatestFolder
+            }
+
+            Get-ChildItem -Path $DistFolder -File
+            | Where-Object -FilterScript { $_.Name -match '\.(txt|tar\.gz|zip)'}
+            | Move-Item -Destination $LatestFolder
+        } else {
+            $Arguments += @(
+                '--single-target'
+            )
+            goreleaser build @Arguments
+            Get-Command "./dist/tstoy*/tstoy*" -ErrorAction Stop
+        }
+    }
+
+    end { }
 }
 
 switch ($Target) {

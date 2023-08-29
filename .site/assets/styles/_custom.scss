@@ -1,0 +1,8 @@
+sl-tab-group.shell-completion {
+    sl-tab {
+        &::part(base) {
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+        }
+    }
+}

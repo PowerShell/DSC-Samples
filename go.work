@@ -1,6 +1,6 @@
 go 1.19
 
 use (
-	./app
+	./tstoy
 	./samples/go/resources/first
 )

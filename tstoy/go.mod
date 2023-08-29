@@ -1,4 +1,4 @@
-module github.com/PowerShell/DSC-Samples/app
+module github.com/PowerShell/DSC-Samples/tstoy
 
 go 1.19
 
