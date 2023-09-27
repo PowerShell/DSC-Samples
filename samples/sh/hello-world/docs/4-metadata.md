@@ -5,17 +5,13 @@ dscs:
   menu_title: 4. Add shell script metadata
 ---
 
-In this step, we continue from [step 3](./3-parameters.md)
-by adding metadata to the DSC resource.
+In this step, we continue from [step 3](./3-parameters.md) by adding metadata to the DSC resource.
 
-Adding metadata is a best practice.
-Review the optional properties and think about
-how you can make the resource more securable and sharable.
+Adding metadata is a best practice. Review the optional properties and think about how you can make
+the resource more securable and sharable.
 
-Open a terminal and return to the project created in step 3,
-if you aren't already in the project folder.
-Open the `.json` manifest file in your preferred text editor,
-such as `nano`.
+Open a terminal and return to the project created in step 3, if you aren't already in the project
+folder. Open the `.json` manifest file in your preferred text editor, such as `nano`.
 
 ```sh
 cd ./dsc-sample-sh-helloworld
@@ -51,17 +47,13 @@ Update the file by adding the following list of properties.
 }
 ```
 
-Next, we add to the `schema` section.
-DSC uses the resource schema to validate input.
-The following sample adds properties used in steps 2 and 3,
-including a description and type.
-Users working with the resource benefit from schema details
-because DSC will validate input before running.
-The schema is also used by language services in text
-editors to assist authors creating a configuration file.
+Next, we add to the `schema` section. DSC uses the resource schema to validate input. The following
+sample adds properties used in steps 2 and 3, including a description and type. Users working with
+the resource benefit from schema details because DSC will validate input before running. The schema
+is also used by language services in text editors to assist authors creating a configuration file.
 
-By setting the `additionalProperties` field to `false`,
-we prevent input other than what is defined by the schema.
+By setting the `additionalProperties` field to `false`, we prevent input other than what is defined
+by the schema.
 
 ```json
 {
@@ -109,9 +101,8 @@ we prevent input other than what is defined by the schema.
 }
 ```
 
-Now the resource provides more information to users.
-We validate the metadata by testing `list` operations
-and by evaluating input that should fail.
+Now the resource provides more information to users. We validate the metadata by testing `list`
+operations and by evaluating input that should fail.
 
 ```powershell
 dsc resource list sh.Example/helloworld
@@ -141,6 +132,6 @@ Error: Schema: Additional properties are not allowed ('BADINPUT' was unexpected)
 NativeCommandExitException: Program "dsc" ended with non-zero exit code: 2.
 ```
 
-You are well on your way to authoring DSC resources in shell scripts!
-There are many more features of DSC to explore including configurations where you can
-use your custom resources through new capabilities in DSC version 3.
+You are well on your way to authoring DSC resources in shell scripts! There are many more features
+of DSC to explore including configurations where you can use your custom resources through new
+capabilities in DSC version 3.

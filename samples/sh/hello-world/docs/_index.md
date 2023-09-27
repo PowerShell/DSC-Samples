@@ -8,17 +8,15 @@ platen:
     collapse_section: true
 ---
 
-With Desired State Configuration (DSC) version 3,
-the intention is that anyone
-managing the state of an environment, operating system, or application,
-can use their preferred programming or scripting language
-to perform automation tasks.
+With Desired State Configuration (DSC) version 3, the intention is that anyone managing the state
+of an environment, operating system, or application, can use their preferred programming or
+scripting language to perform automation tasks.
 
-This tutorial describes how you can implement a "hello, world" example
-DSC Resource using shell scripts.
+This tutorial describes how you can implement a "hello, world" example DSC Resource using shell
+scripts.
 
-In this tutorial, you learn the fundamental parts of a Resource in DSC version 3,
-and how to embed shell scripts that write "hello, world" to a temporary file.
+In this tutorial, you learn the fundamental parts of a Resource in DSC version 3, and how to embed
+shell scripts that write "hello, world" to a temporary file.
 
 ## Prerequisites
 

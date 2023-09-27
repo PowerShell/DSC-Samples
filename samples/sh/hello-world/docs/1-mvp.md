@@ -11,8 +11,7 @@ Create a new project folder called `dsc-sh-helloworld`.
 mkdir ./dsc-sh-helloworld
 ```
 
-Create and open a new file in your preferred editor.
-For this example, we use `nano`.
+Create and open a new file in your preferred editor. For this example, we use `nano`.
 
 ```sh
 cd ./dsc-sample-sh-helloworld
@@ -38,26 +37,24 @@ Copy and paste the following contents into the editor. Then save the file and ex
 }
 ```
 
-What did we just create? The `.json` file provides metadata to the `dsc` executable
-about the DSC Resource. There are 5 sections in the file that you should understand
-before moving on.
+What did we just create? The `.json` file provides metadata to the `dsc` executable about the DSC
+Resource. There are 5 sections in the file that you should understand before moving on.
 
-1) **$schema**: Identifies the version of DSC Resource schema used to validate the file for
-  editors that support language service.
-1) **type**__**: A type name for the resource. This is the name for the resource used
-  by commands like `dsc resource list`, and in configuration files.
-1) **version**: The version of this DSC Resource.
-1) **get**: A section to describe details about executing `get` operations.
-1) **schema**: The parameters for the resource (not used in this example).
+1. **$schema**: Identifies the version of DSC Resource schema used to validate the file for editors
+   that support language service.
+1. **type**__**: A type name for the resource. This is the name for the resource used by commands
+   like `dsc resource list`, and in configuration files.
+1. **version**: The version of this DSC Resource.
+1. **get**: A section to describe details about executing `get` operations.
+1. **schema**: The parameters for the resource (not used in this example).
 
-More properties are available but DSC requires these 5.
-A resource with the minimum viable properties only has the `get` method defined.
-When only `get` is available, the resource is useful for auditing state but can't
-manage or change the state.
+More properties are available but DSC requires these 5. A resource with the minimum viable
+properties only has the `get` method defined. When only `get` is available, the resource is useful
+for auditing state but can't manage or change the state.
 
-This sample uses the `echo` command to return a small jSON formatted output.
-A single key value pair of `return` and `hello, world` provides a minimum viable output
-for DSC to function and return the "actualState" of a resource.
+This sample uses the `echo` command to return a small jSON formatted output. A single key value
+pair of `return` and `hello, world` provides a minimum viable output for DSC to function and return
+the "actualState" of a resource.
 
 Test the DSC resource using the `dsc` command with the `resource` parameters.
 
@@ -110,5 +107,5 @@ Expect the following output.
 }
 ```
 
-The state in this sample is only for the sake of demonstration.
-In the next example, we add functional script that evaluates contents of a file.
+The state in this sample is only for the sake of demonstration. In the next example, we add
+functional script that evaluates contents of a file.
