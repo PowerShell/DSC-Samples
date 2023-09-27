@@ -1,0 +1,43 @@
+{
+    "$schema": "https://raw.githubusercontent.com/PowerShell/DSC/main/schemas/2023/08/bundled/resource/manifest.json",
+    "type": "sh.Example/helloworld",
+    "description": "Sample to demonstrate common practices in DSC Resource authoring.",
+    "tags": [
+      "Sample",
+      "HelloWorld"
+    ],
+    "version": "0.1.0",
+    "get": {
+        "executable": "get.sh",
+        "input": "env"
+    },
+    "set": {
+        "executable": "set.sh",
+        "input": "env"
+    },
+    "schema": {
+      "embedded": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "sh.Example/helloworld",
+        "description": "Sample to demonstrate common practices in DSC Resource authoring.",
+        "markdownDescription": "**Sample** to demonstrate common practices in DSC Resource authoring.",
+        "type": "object",
+        "required": ["contentMatch","path"],
+        "properties": {
+            "contentMatch": {
+              "title": "Content to match",
+              "description": "A string to search in the file such as \"my text\".",
+              "markdownDescription": "A string to search in the file.\n\n*Note:If more than one instance is found, all instances are turned with no seperator.*", 
+              "type": "string"
+            },
+            "path": {
+              "title": "File path",
+              "description": "File location such as /folder/file.",
+              "markdownDescription": " Indicates the path to a file or folder represented in DOS, UNC, or Files System Hierarchy format. Should not be used for Internet locations.", 
+              "type": "string"
+            }
+        },
+        "additionalProperties": false
+      }
+    }
+}
