@@ -36,9 +36,14 @@ markup:
 
 module:
   replacements: |
-    github.com/PowerShell/DSC-Samples/go/resources/first -> go/resources/first
+    github.com/PowerShell/DSC-Samples/go/resources/first -> go/resources/first,
+    github.com/PowerShell/DSC-Samples/sh/hello-world     -> sh/hello-world
   imports:
     - path: github.com/platenio/platen/modules/platen
+    - path: github.com/PowerShell/DSC-Samples/sh/hello-world
+      mounts:
+        - source: docs
+          target: content/languages/sh/hello-world
     - path: github.com/PowerShell/DSC-Samples/go/resources/first
       mounts:
         - source: docs
