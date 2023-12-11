@@ -26,7 +26,7 @@ jobs:
           fetch-depth: 0 # Fetch all history for .GitInfo and .Lastmod
       - name: Setup Pages
         id:   pages
-        uses: actions/configure-pages@v3
+        uses: actions/configure-pages@v4
       - name: Setup Hugo
         id:   hugo
         uses: peaceiris/actions-hugo@v2
