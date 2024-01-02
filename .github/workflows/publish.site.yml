@@ -69,7 +69,7 @@ jobs:
         run: |
           Invoke-Build -Task BuildSite -SiteBaseUrl "${{ steps.pages.outputs.base_url }}/"
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           path: ./.site/public
   # Deployment job
