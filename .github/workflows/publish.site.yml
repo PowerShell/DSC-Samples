@@ -54,7 +54,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: '~/.local/share/powershell/Modules'
-          key: ${{ runner.os }}-SqlServer-PSScriptAnalyzer
+          key: ${{ runner.os }}-dsc-samples
       - name: Install required PowerShell modules
         if: steps.cacher.outputs.cache-hit != 'true'
         shell: pwsh
