@@ -29,7 +29,7 @@ jobs:
         uses: actions/configure-pages@v4
       - name: Setup Hugo
         id:   hugo
-        uses: peaceiris/actions-hugo@v2
+        uses: peaceiris/actions-hugo@v3
         with:
           hugo-version: latest
           extended:     true
