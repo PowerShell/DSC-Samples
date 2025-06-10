@@ -4,7 +4,7 @@ param (
 
 BeforeAll {
     $oldPath = $env:Path
-    $env:Path = [System.IO.Path]::PathSeparator + (Join-Path (Split-Path $PSScriptRoot -Parent) 'dist')
+    $env:Path += [System.IO.Path]::PathSeparator + (Join-Path (Split-Path $PSScriptRoot -Parent) 'dist')
 
     if ($IsWindows) {
         $script:machinePath = Join-Path $env:ProgramData 'tstoy' 'config.json'
@@ -16,7 +16,20 @@ BeforeAll {
     }
 }
 
-Describe 'TSToy acceptance tests' {
+Describe "TSToy acceptance tests - Schema command" {
+    It "Should return schema" {
+        $schema = & $Name schema | ConvertFrom-Json
+        $schema | Should -Not -BeNullOrEmpty
+        $LASTEXITCODE | Should -Be 0
+        $schema.required | Should -Contain 'scope'
+        $schema.properties.scope | Should -Not -BeNullOrEmpty
+        $schema.properties.updateFrequency | Should -Not -BeNullOrEmpty
+        $schema.properties.updateAutomatically | Should -Not -BeNullOrEmpty
+        $schema.properties._exist | Should -Not -BeNullOrEmpty
+    }
+}
+
+Describe 'TSToy acceptance tests - Get command' {
     Context "Help command" {
         It 'Should return help' {
             $help = & $Name --help
@@ -29,7 +42,7 @@ Describe 'TSToy acceptance tests' {
         It 'Should fail with invalid input' {
             $out = & $Name get --input '{}' 2>&1
             $LASTEXITCODE | Should -Be 1
-            $out | Should -BeLike '*"level":"ERROR"*"message":"Input validation failed: Validation error: ''scope'' is a required property"*'
+            $out[1] | Should -BeLike '*"ERROR"*"message":"Input validation failed: Validation error: ''scope'' is a required property"*'
         }
     }
 
@@ -71,11 +84,70 @@ Describe 'TSToy acceptance tests' {
             $out = & $Name get --input ($_ | ConvertTo-Json -Depth 10) | ConvertFrom-Json
             $LASTEXITCODE | Should -Be 0
             $out._exist | Should -BeTrue
+            $out.updateFrequency | Should -Be 180
+            $out.updateAutomatically | Should -BeFalse
         }
     }
 }
 
+Describe "TSToy acceptance tests - Set command" {
+    It "Should set user scope" {
+        $config = @{
+            scope = 'user'
+            updateAutomatically = $false
+            updateFrequency = 180
+        } | ConvertTo-Json -Depth 10
 
-AfterAll {
-    $env:Path = $oldPath
+        & $Name set --input $config
+        $LASTEXITCODE | Should -Be 0
+
+        $out = & $Name get --input $config | ConvertFrom-Json
+        $out | Should -Not -BeNullOrEmpty
+        $out._exist | Should -BeTrue 
+        $out.updateFrequency | Should -Be 180
+        $out.updateAutomatically | Should -BeFalse
+    }
+
+    It "Should set machine scope" {
+        $config = @{
+            scope = 'machine'
+            updateAutomatically = $true
+            updateFrequency = 10
+        } | ConvertTo-Json -Depth 10
+
+        & $Name set --input $config
+        $LASTEXITCODE | Should -Be 0
+
+        $out = & $Name get --input $config | ConvertFrom-Json
+        $out | Should -Not -BeNullOrEmpty
+        $out._exist | Should -BeTrue
+        $out.updateFrequency | Should -Be 10
+        $out.updateAutomatically | Should -BeTrue
+    }
+
+    It "Should delete user scope" {
+        $config = @{
+            scope = 'user'
+            _exist = $false
+        } | ConvertTo-Json -Depth 10
+
+        & $Name set --input $config
+        $LASTEXITCODE | Should -Be 0
+
+        $out = & $Name get --input $config | ConvertFrom-Json
+        $out._exist | Should -BeFalse
+    }
+
+    It "Should delete machine scope" {
+        $config = @{
+            scope = 'machine'
+            _exist = $false
+        } | ConvertTo-Json -Depth 10
+
+        & $Name set --input $config
+        $LASTEXITCODE | Should -Be 0
+
+        $out = & $Name get --input $config | ConvertFrom-Json
+        $out._exist | Should -BeFalse
+    }
 }

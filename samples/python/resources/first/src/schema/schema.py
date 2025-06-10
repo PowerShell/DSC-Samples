@@ -1,5 +1,7 @@
 import jsonschema
 import json
+import click
+import sys
 
 RESOURCE_SCHEMA = {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -24,6 +26,7 @@ RESOURCE_SCHEMA = {
             "title": "Should update automatically",
             "description": "Indicates whether TSToy should check for updates when it starts.",
             "type": "boolean",
+            "default": True,
         },
         "updateFrequency": {
             "title": "Update check frequency",
@@ -31,12 +34,12 @@ RESOURCE_SCHEMA = {
             "type": "integer",
             "minimum": 1,
             "maximum": 180,
+            "default": 90,
         },
     }
 }
 
 def validate_resource(instance):
-    """Validate resource instance against schema."""
     try:
         jsonschema.validate(instance=instance, schema=RESOURCE_SCHEMA)
         return True, None
@@ -44,5 +47,4 @@ def validate_resource(instance):
         return False, f"Validation error: {err.message}"
  
 def get_schema():
-    """Dump the schema as formatted JSON string."""
     return json.dumps(RESOURCE_SCHEMA, separators=(',', ':'))
