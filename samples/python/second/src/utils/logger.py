@@ -98,12 +98,5 @@ class Logger:
     def error(self, message: str, target: str = None, **kwargs):
         self._log(LogLevel.ERROR, message, target, **kwargs)
     
-    def log_config_loaded(self, config_path: str, config_type: str, **kwargs):
-        self.info(f"Loaded {config_type} configuration", "config_manager", 
-                 config_path=config_path, **kwargs)
-    
-    def log_config_error(self, error_msg: str, config_path: str = None, **kwargs):
-        self.error(f"Configuration error: {error_msg}", "config_manager",
-                  config_path=config_path, **kwargs)
 
 dfl_logger = Logger()
