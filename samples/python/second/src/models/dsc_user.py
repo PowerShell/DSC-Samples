@@ -2,28 +2,12 @@ import json
 from typing import  Dict, Any
 from utils.utils import check_user_exist, create_user, update_user, get_passwd_entry, get_user_groups
 import sys
+import pwd
+from utils.logger import dfl_logger as Logger
 
-def dsc_resource(cls):
-    """
-    Decorator that marks a class as a DSC (Desired State Configuration) resource.
-    This allows the class to be used in configuration management.
-    """
-    cls._is_dsc_resource = True
-    
-    # Add methods needed for DSC if they don't exist
-    if not hasattr(cls, 'test'):
-        cls.test = lambda self: self._exist
-        
-    if not hasattr(cls, 'get'):
-        cls.get = lambda self: self.__dict__
-    
-    return cls
-
-@dsc_resource
 class User:
     """Linux User resource that can be managed via DSC."""
     def __init__(self):
-        """Initialize User with default values."""
         self.username = ""
         self.password = ""
         self.uid = None 
@@ -33,18 +17,38 @@ class User:
         self.groups = None
         self._exist = False
 
+    def export(self):
+        """Export all users on the system."""
+        result = []
+        
+        try:
+            for passwd_entry in pwd.getpwall():
+                username = passwd_entry.pw_name
+                user = User()
+                user.username = username
+                user.uid = passwd_entry.pw_uid
+                user.gid = passwd_entry.pw_gid
+                user.home = passwd_entry.pw_dir
+                user.shell = passwd_entry.pw_shell
+                user._exist = True
+                
+                # Get groups for this user
+                try:
+                    user_groups = get_user_groups(username)
+                    user.groups = user_groups
+                except Exception: 
+                    user.groups = []
+                
+                result.append(self.to_dict(user))
+            
+            print(json.dumps(result, separators=(',', ':')))
+            
+        except Exception as e:
+            Logger.error(f"Error occurred while exporting users: {e}", target="Export")
+            sys.exit(1)
+
     
     def get_current_state(self, requested_properties=None):
-        """
-        Check if the user exists and return only the requested properties.
-        
-        Args:
-            requested_properties: List of property names that were explicitly requested
-                                If None, returns all available properties
-        
-        Returns:
-            Dict containing the requested user properties
-        """
         result = {}
         
         try:
@@ -52,7 +56,7 @@ class User:
 
             if user is not None:
                 self._exist = True
-                result["exist"] = True
+                result["_exist"] = True
 
                 if user:
                     passwd_entry = get_passwd_entry(self.username)
@@ -89,22 +93,37 @@ class User:
             if not self._exist:
                 print(json.dumps({
                     "username": self.username,
-                    "exist": False,
+                    "_exist": False,
                 }))
             else:
                 print(self.to_json(self))
             
         except Exception as e:
-            print(f"Error occurred while getting current state for user '{self.username}': {e}")
+            Logger.error(f"Error occurred while getting current state for user '{self.username}': {e}", target="GetCurrentState")
             sys.exit(1)
 
     def modify(self, what_if: bool = False) -> None:
         exists = check_user_exist(self.username)
+
         if what_if:
             if exists:
-                print(f"Would update user '{self.username}'")
+                print(json.dumps({
+                    "username": self.username,
+                    "_metadata": {
+                        "whatIf": [
+                            f"User '{self.username}' exists and will be updated."
+                        ]
+                    }
+                }))
             else:
-                print(f"Would create user '{self.username}'")
+                print(json.dumps({
+                    "username": self.username,
+                    "_metadata": {
+                        "whatIf": [
+                            f"User '{self.username}' does not exist and will be created."
+                        ]
+                    }
+                }))
             return
         
         if exists:
@@ -113,7 +132,8 @@ class User:
                 uid=self.uid,
                 gid=self.gid,
                 home=self.home,
-                shell=self.shell
+                shell=self.shell,
+                password=self.password
             )
         else:
             create_user(
@@ -121,9 +141,10 @@ class User:
                 uid=self.uid,
                 gid=self.gid,
                 home=self.home,
-                shell=self.shell
+                shell=self.shell,
+                password=self.password
             )
-    
+
     @classmethod
     def to_dict(cls, item: 'User') -> Dict[str, Any]:
         """Convert User to dictionary for serialization."""
@@ -134,7 +155,7 @@ class User:
             "home": item.home,
             "shell": item.shell,
             "groups": item.groups,
-            "exist": item._exist
+            "_exist": item._exist
         }
 
         return result
@@ -155,5 +176,5 @@ class User:
         user.home = data.get('home')
         user.shell = data.get('shell', '/bin/bash')
         user.groups = data.get('groups', [])
-        user._exist = data.get('exists', False)
+        user._exist = data.get('_exist', False)
         return user
