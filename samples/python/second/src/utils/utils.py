@@ -114,10 +114,10 @@ def collect_input_data(
 
 def check_user_exist(user_id: int) -> Optional[Dict[str, Any]]:
     """
-    Check if a user exists in the system and return user information.
+    Check if a user exists in the system and return user information. Can be used with both username and UID.
 
     Args:
-        user_id: The user ID to check
+        user_id: The username or ID to check
 
     Returns:
         Dictionary with username, uid, and gid if user exists, None otherwise
@@ -157,7 +157,6 @@ def create_user(
 ) -> None:
     cmd = ["adduser", "--quiet"]
 
-    # Add optional parameters if provided
     if home:
         cmd.extend(["--home", home])
 
@@ -171,7 +170,13 @@ def create_user(
             group_name = grp.getgrgid(gid).gr_name
             cmd.extend(["--gid", group_name])
         except KeyError:
-            raise ValueError(f"Group ID {gid} does not exist")
+            Logger.error(
+                "Group ID does not exist",
+                "user_management",
+                command="adduser",
+                gid=gid,
+            )
+            sys.exit(3)
 
     cmd.append(username)
     Logger.info(
@@ -193,9 +198,6 @@ def set_password(username: str, password: str) -> None:
     Args:
         username: The username to set password for
         password: The new password
-
-    Raises:
-        RuntimeError: If setting the password fails
     """
     if not username or not password:
         Logger.error(
@@ -219,7 +221,13 @@ def set_password(username: str, password: str) -> None:
     except RuntimeError as e:
         error_msg = str(e)
         sanitized_error = error_msg.replace(password, "********")
-        raise RuntimeError(f"Failed to set password: {sanitized_error}")
+        Logger.error(
+            "Failed to set password",
+            "user_management",
+            username=username,
+            error=sanitized_error,
+        )
+        sys.exit(3)
 
     except subprocess.CalledProcessError as e:
         error_msg = e.stderr.decode("utf-8") if hasattr(e, "stderr") else str(e)
@@ -231,12 +239,12 @@ def set_password(username: str, password: str) -> None:
             username=username,
             error=sanitized_error,
         )
-        raise RuntimeError(f"Failed to set password: {sanitized_error}")
+        sys.exit(3)
     except Exception as e:
         Logger.error(
             "Error setting password", "user_management", username=username, error=str(e)
         )
-        raise RuntimeError(f"Error setting password: {str(e)}")
+        sys.exit(3)
 
 
 def update_user(
@@ -483,7 +491,13 @@ def run_command(
                 username=username,
             )
         if check:
-            raise RuntimeError(f"Command failed: {error_msg}")
+            Logger.error(
+                f"Command '{cmd[0]}' failed",
+                "user_management",
+                command=cmd[0],
+                error=error_msg,
+                username=username,
+            )
         return e
     except Exception as e:
         if command_name:
@@ -495,5 +509,5 @@ def run_command(
                 username=username,
             )
         if check:
-            raise RuntimeError(f"Command execution error: {str(e)}")
+            sys.exit(3)
         return None
