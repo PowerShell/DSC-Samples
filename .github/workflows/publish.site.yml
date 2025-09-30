@@ -19,7 +19,7 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
         with:
@@ -27,11 +27,13 @@ jobs:
       - name: Setup Pages
         id:   pages
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - name: Setup Hugo
         id:   hugo
         uses: peaceiris/actions-hugo@v3
         with:
-          hugo-version: latest
+          hugo-version: 0.129.0
           extended:     true
       # - name: Setup Node
       #   uses: actions/setup-node@v3
