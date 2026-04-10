@@ -10,3 +10,12 @@
 
 # Test ignores
 **/*.Results.xml
+
+# Ignore C# build artifacts
+samples/csharp/bin
+samples/csharp/obj
+samples/csharp/.vs
+
+# Ignore any compiled windows binary
+*.exe
+*.dll
