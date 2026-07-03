@@ -1,0 +1,68 @@
+{
+    "$schema": "https://raw.githubusercontent.com/PowerShell/DSC/main/schemas/2023/10/resource/manifest.json",
+    "type": "TSToy.Example/csharptstoy",
+    "version": "0.1.0",
+    "description": "A DSC Resource written in C# to manage TSToy.",
+    "get": {
+        "executable": "csharptstoy",
+        "args": ["get"],
+        "input": "stdin"
+    },
+    "set": {
+        "executable": "csharptstoy",
+        "args": ["set"],
+        "input": "stdin",
+        "preTest": false,
+        "return": "state"
+    },
+    "export": {
+        "executable": "csharptstoy",
+        "args": [
+            "get",
+            "--all"
+        ]
+    },
+    "schema": {
+        "embedded": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "title": "C# TSToy Resource",
+            "type": "object",
+            "required": [
+                "scope"
+            ],
+            "properties": {
+                "scope": {
+                    "title": "Target configuration scope",
+                    "description": "Defines which of TSToy's config files to manage.",
+                    "type": "string",
+                    "enum": [
+                        "machine",
+                        "user"
+                    ]
+                },
+                "ensure": {
+                    "title": "Ensure configuration file existence",
+                    "description": "Defines whether the config file should exist.",
+                    "type": "string",
+                    "enum": [
+                        "present",
+                        "absent"
+                    ],
+                    "default": "present"
+                },
+                "updateAutomatically": {
+                    "title": "Should update automatically",
+                    "description": "Indicates whether TSToy should check for updates when it starts.",
+                    "type": "boolean"
+                },
+                "updateFrequency": {
+                    "title": "Update check frequency",
+                    "description": "Indicates how many days TSToy should wait before checking for updates.",
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 90
+                }
+            }
+        }
+    }
+}
