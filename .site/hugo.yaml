@@ -36,7 +36,8 @@ markup:
 
 module:
   replacements: |
-    github.com/PowerShell/DSC-Samples/go/resources/first -> go/resources/first
+    github.com/PowerShell/DSC-Samples/go/resources/first -> go/resources/first,
+    github.com/PowerShell/DSC-Samples/pwsh/resources/first -> pwsh/resources/first
   imports:
     - path: github.com/platenio/platen/modules/platen
     - path: github.com/PowerShell/DSC-Samples/go/resources/first
@@ -45,3 +46,9 @@ module:
           target: content/tutorials/first-resource/go
         - source: docs
           target: content/languages/go/first-resource
+    - path: github.com/PowerShell/DSC-Samples/pwsh/resources/first
+      mounts:
+        - source: docs
+          target: content/tutorials/first-resource/pwsh
+        - source: docs
+          target: content/languages/pwsh/first-resource
