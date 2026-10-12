@@ -5,305 +5,128 @@ dscs:
   menu_title: 4. Implement get
 ---
 
-To implement the get command, the DSC Resource needs to be able to find and marshal the settings
-from a specific `tstoy` configuration file.
+To implement the get operation, the DSC Resource needs to find a specific `tstoy`
+configuration file and translate its contents into an instance of `Settings`.
 
-Recall from [About the TSToy application][01] that you can use the `tstoy show path` command to get
-the full path to the applications configuration files. The DSC Resource can use those commands
-instead of trying to generate the paths itself.
+Recall from [About the TSToy application][01] that you can use the `tstoy show path`
+command to get the full path to the application's configuration files. The DSC Resource
+can use that command instead of trying to generate the paths itself.
 
-## Define get helper functions and methods { toc_md="Define `get` helpers" }
+## Define get helper functions { toc_md="Define `get` helpers" }
 
-Open the `config/config.go` file. In it, add the `getAppConfigPath` function. It should take a
-`Scope` value as input and return a string and error.
+Open `settings.go`. Add the `configPath` function, which asks `tstoy` where the config
+file for a scope lives:
 
 ```go
-func getAppConfigPath(s Scope) (string, error) {
-	args := []string{"show", "path", s.String()}
-
-	output, err := exec.Command("tstoy", args...).Output()
-	if err != nil {
-		return "", err
-	}
-
-	// We need to trim trailing whitespace automatically emitted for the path.
-	path := string(output)
-	path = strings.Trim(path, "\n")
-	path = strings.Trim(path, "\r")
-
-	return path, nil
+// configPath asks the tstoy application where the scope's config file lives.
+func configPath(scope string) (string, error) {
+    out, err := exec.Command("tstoy", "show", "path", scope).Output()
+    if err != nil {
+        return "", fmt.Errorf(
+            "failed to query tstoy for the %s config file path (is tstoy on PATH?): %w",
+            scope, err)
+    }
+    return strings.TrimSpace(string(out)), nil
 }
 ```
 
-The function generates the arguments to send to `tstoy` and calls the command.
-
-Next, update the `Settings` struct to include a private field for the configuration path and
-implement the public `GetConfigPath` function to retrieve the path for the instance of the
-configuration file.
+Next, add `readConfigMap` to read a config file as a raw map. Reading into a map instead
+of a struct matters for set later: it preserves any settings in the file that this
+resource doesn't manage.
 
 ```go
-type Settings struct {
-	Ensure              Ensure    `json:"ensure,omitempty"`
-	Scope               Scope     `json:"scope,omitempty"`
-	UpdateAutomatically *bool     `json:"updateAutomatically,omitempty"`
-	UpdateFrequency     Frequency `json:"updateFrequency,omitempty"`
-	configPath          string
-}
-
-func (s *Settings) GetConfigPath() (string, error) {
-	if s.configPath == "" {
-		path, err := getAppConfigPath(s.Scope)
-		if err != nil {
-			return "", err
-		}
-		s.configPath = path
-	}
-
-	return s.configPath, nil
+func readConfigMap(path string) (map[string]any, error) {
+    data, err := os.ReadFile(path)
+    if err != nil {
+        return nil, err
+    }
+    var cfg map[string]any
+    if err := json.Unmarshal(data, &cfg); err != nil {
+        return nil, fmt.Errorf("config file '%s' is not valid JSON: %w", path, err)
+    }
+    return cfg, nil
 }
 ```
 
-The `GetConfigPath` function reduces the number of calls the DSC Resource needs to make to the
-application when you implement the `set` command.
-
-Now that the DSC Resource can find the correct path, it needs to be able to retrieve settings from
-the configuration file. You need to implement two more private functions:
-
-1. `getAppConfigMap` to retrieve the configuration file settings as a generic `map[string]any`
-   object.
-1. `getAppConfigSettings` to convert the generic map into a `Settings` instance.
-
-First, implement `getAppConfigMap` to read the configuration file and unmarshal the JSON.
+Finally, add `settingsAt`, which turns a config file into the resource's state model:
 
 ```go
-func getAppConfigMap(path string) (map[string]any, error) {
-	var config map[string]any
+// settingsAt reads the config file into the resource's state model. A
+// missing file is the valid "absent" state, not an error.
+func settingsAt(scope, path string) (Settings, error) {
+    cfg, err := readConfigMap(path)
+    if errors.Is(err, fs.ErrNotExist) {
+        return Settings{Scope: scope, Ensure: "absent"}, nil
+    }
+    if err != nil {
+        return Settings{Scope: scope}, err
+    }
 
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal(data, &config)
-	return config, err
+    current := Settings{Scope: scope, Ensure: "present"}
+    if updates, ok := cfg["updates"].(map[string]any); ok {
+        if auto, ok := updates["automatic"].(bool); ok {
+            current.UpdateAutomatically = &auto
+        }
+        if freq, ok := updates["checkFrequency"].(float64); ok {
+            current.UpdateFrequency = int(freq)
+        }
+    }
+    return current, nil
 }
 ```
 
-Next, implement `getAppConfigSettings` to convert the map into a `Settings` instance.
+The first branch encodes an important DSC convention: when the instance doesn't exist, get
+reports that as valid state (`ensure: absent`) — not as an error. DSC needs the "it's
+not there" answer to decide whether set has work to do.
+
+## Implement the Get method
+
+Replace the stub `Get` method with the real implementation:
 
 ```go
-func getAppConfigSettings(scope Scope, config map[string]any) (Settings, error) {
-	// ensure the map keys are all strings.
-	maps.IntfaceKeysToStrings(config)
-
-	// Since we found the config, we know the scope and ensure state.
-	settings := Settings{
-		Scope:  scope,
-		Ensure: EnsurePresent,
-	}
-
-	// Check for the update settings
-	updates, ok := config["updates"]
-	if ok {
-		for key, value := range updates.(map[string]any) {
-			switch key {
-			case "automatic":
-				auto := value.(bool)
-				settings.UpdateAutomatically = &auto
-			case "checkFrequency":
-				intValue := int(value.(float64))
-				frequency := Frequency(intValue)
-				settings.UpdateFrequency = frequency
-			}
-		}
-	}
-
-	return settings, nil
+// Get returns the current state of the config file for the requested scope.
+func (Handler) Get(_ context.Context, in Settings) (Settings, error) {
+    if err := validateScope(in.Scope); err != nil {
+        return in, err
+    }
+    path, err := configPath(in.Scope)
+    if err != nil {
+        return in, err
+    }
+    return settingsAt(in.Scope, path)
 }
 ```
 
-With those private functions implemented, you can add methods to `Settings` for retrieving the map
-of settings and the actual state.
+That's the entire get operation. The library already handles parsing the input JSON into
+`Settings`, serializing the returned state as one compact JSON line on stdout, and mapping
+any returned error to a trace message and exit code.
 
-```go
-func (s *Settings) GetConfigMap() (map[string]any, error) {
-	path, err := s.GetConfigPath()
-	if err != nil {
-		return nil, err
-	}
-	return getAppConfigMap(path)
-}
+## Try it out
 
-func (s *Settings) GetConfigSettings() (Settings, error) {
-	config, err := s.GetConfigMap()
-	if errors.Is(err, os.ErrNotExist) {
-		return Settings{
-			Ensure: EnsureAbsent,
-			Scope:  s.Scope,
-		}, nil
-	} else if err != nil {
-		return Settings{}, err
-	}
-
-	return getAppConfigSettings(s.Scope, config)
-}
-```
-
-## Update getState to return one instance { toc_md="Support returning one instance" }
-
-Open the `cmd/get.go` file and return to the `getState` function. Instead of printing the inputs,
-the function should:
-
-1. Create an instance of `Settings` from the inputs.
-1. Validate the instance.
-1. Get the current settings from the system.
-1. Print the results.
-
-```go
-func getState(cmd *cobra.Command, args []string) error {
-	// Only the scope is used when retrieving current state.
-	s := config.Settings{
-		Scope: targetScope,
-	}
-
-	err := s.Validate()
-	if err != nil {
-		return fmt.Errorf("can't get settings; %s", err)
-	}
-
-	config, err := s.GetConfigSettings()
-	if err != nil {
-		return fmt.Errorf("failed to get settings; %s", err)
-	}
-
-	return config.Print()
-}
-```
-
-Now you can run the updated command to see how it works:
+With `tstoy` on your `PATH`, get the current state of both scopes:
 
 ```sh
-go run ./main.go get
-go run ./main.go get --scope machine
-go run ./main.go get --inputJSON '{ "scope": "user" }'
-'{ "scope": "user" }' | go run ./main.go get --scope machine
-go run ./main.go get --scope machine --ensure present
+go run . get --input '{ "scope": "machine" }'
+echo '{ "scope": "user" }' | go run . get
 ```
 
-```Output
-Error: can't get settings; the Scope setting isn't defined. Must define a Scope
-for Settings
-
-{"ensure":"absent","scope":"machine"}
-
-{"ensure":"absent","scope":"user"}
-
-{"ensure":"absent","scope":"machine"}
-
-{"ensure":"absent","scope":"machine"}
+```json
+{"scope":"machine","ensure":"absent"}
+{"scope":"user","ensure":"absent"}
 ```
 
-## Update getState to return all instances { toc_md="Support returning all instances" }
-
-DSC Resources may optionally return the current state for every manageable instance. This is
-convenient for users who want to get information about a resource with a single command. It's also
-useful for higher-order tools that can cache current state.
-
-To add this functionality, add the `all` variable as a boolean in `cmd/get.go`.
-
-```go
-var all bool
-```
-
-In the `init` function, add `--all` as a new flag for the command.
-
-```go
-func init() {
-	rootCmd.AddCommand(getCmd)
-	getCmd.Flags().BoolVar(
-		&all,
-		"all",
-		false,
-		"Get the configurations for all scopes.",
-	)
-}
-```
-
-Update the `getState` function to handle the new flag by making the behavior loop. The function
-should handle a few different cases for the input:
-
-- If the `--all` flag is used, the function should return the instance for both scopes.
-- If the `--targetScope` flag is used, the function should return the instance for that scope.
-- If `--targetScope` is used with a JSON blob from `--inputJSON` or stdin, the JSON value should be
-  ignored.
-- If the command receives a JSON blob from `--inputJSON` or stdin without the `--targetScope` flag,
-  the command should use that value.
-
-```go
-func getState(cmd *cobra.Command, args []string) error {
-	list := []config.Settings{}
-	if all {
-		list = append(
-			list,
-			config.Settings{Scope: config.ScopeMachine},
-			config.Settings{Scope: config.ScopeUser},
-		)
-	} else if targetScope != config.ScopeUndefined {
-		// explicit --scope overrides JSON
-		list = append(list, config.Settings{Scope: targetScope})
-	} else if inputJSON != nil {
-		list = append(list, *inputJSON)
-	} else {
-		// fails but with consistent messaging
-		list = append(list, config.Settings{Scope: targetScope})
-	}
-
-	for _, s := range list {
-
-		err := s.Validate()
-		if err != nil {
-			return fmt.Errorf("can't get settings; %s", err)
-		}
-
-		config, err := s.GetConfigSettings()
-		if err != nil {
-			return fmt.Errorf("failed to get settings; %s", err)
-		}
-
-		err = config.Print()
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-```
-
-Run the updated command:
+If you've never configured TSToy, both scopes report `ensure: absent` — the files don't
+exist yet. Create one with the `tstoy` application itself and see the resource pick it up:
 
 ```sh
-go run ./main.go get --all
-go run ./main.go get --scope machine
-go run ./main.go get --inputJSON '{"scope": "user"}'
-go run ./main.go get --inputJSON '{"scope": "user"}' --scope machine
-'{
-    "scope":  "machine",
-    "ensure": "present"
-}' | go run ./main.go get
+tstoy set user --auto=true --frequency 45
+go run . get --input '{ "scope": "user" }'
 ```
 
-```Output
-{"ensure":"absent","scope":"machine"}
-{"ensure":"absent","scope":"user"}
-
-{"ensure":"absent","scope":"machine"}
-
-{"ensure":"absent","scope":"user"}
-
-{"ensure":"absent","scope":"machine"}
-
-{"ensure":"absent","scope":"machine"}
+```json
+{"scope":"user","ensure":"present","updateAutomatically":true,"updateFrequency":45}
 ```
+
+The resource now reports real state. Next, you'll teach it to change that state.
 
 [01]: /tstoy/about

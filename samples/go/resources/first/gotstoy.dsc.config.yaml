@@ -1,4 +1,4 @@
-$schema: https://schemas.microsoft.com/dsc/2023/03/configuration.schema.json
+$schema: https://aka.ms/dsc/schemas/v3/bundled/config/document.json
 resources:
 - name: All Users Configuration
   type: TSToy.Example/gotstoy
