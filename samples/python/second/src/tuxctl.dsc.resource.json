@@ -1,0 +1,60 @@
+{
+    "$schema": "https://aka.ms/dsc/schemas/v3/bundled/resource/manifest.json",
+    "type": "DSC.UserManagement/TuxCtl",
+    "description": "DSC resource to manage users on Linux",
+    "tags": [
+        "Linux",
+        "UserManagement"
+    ],
+    "version": "0.1.0",
+    "schema": {
+        "embedded": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema#",
+            "$id": "https://raw.githubusercontent.com/PowerShell/DSC/main/schemas/resources/DSC/UserManagement/TuxCtl/v0.1.0/schema.json",
+            "title": "Linux User Management",
+            "description": "Manages Linux users",
+            "type": "object",
+            "required": ["username"],
+            "additionalProperties": false,
+            "properties": {
+                "username": {
+                    "type": "string",
+                    "title": "Username",
+                    "description": "Defines the name of the Linux user"
+                },
+                "password": {
+                    "type": ["string", "null"],
+                    "title": "Password",
+                    "description": "The user's password"
+                },
+                "uid": {
+                    "type": ["integer", "null"],
+                    "title": "User ID",
+                    "description": "The user's numeric ID"
+                },
+                "gid": {
+                    "type": ["integer", "null"],
+                    "title": "Group ID",
+                    "description": "The user's primary group ID"
+                },
+                "home": {
+                    "type": ["string", "null"],
+                    "title": "Home Directory",
+                    "description": "The user's home directory path"
+                },
+                "shell": {
+                    "type": "string",
+                    "title": "Shell",
+                    "description": "The user's login shell"
+                },
+                "groups": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "readOnly": true,
+                    "title": "Groups",
+                    "description": "List of groups the user belongs to"
+                }
+            }
+        }
+    }
+}
