@@ -1,0 +1,82 @@
+{
+  "$schema": "https://aka.ms/dsc/schemas/v3/bundled/resource/manifest.json",
+  "type": "TSToy.Example/gotstoy",
+  "version": "0.1.0",
+  "description": "A DSC Resource written in Go to manage TSToy.",
+  "tags": [
+    "tstoy",
+    "example",
+    "go"
+  ],
+  "get": {
+    "executable": "gotstoy",
+    "args": [
+      "get",
+      {
+        "jsonInputArg": "--input",
+        "mandatory": true
+      }
+    ]
+  },
+  "set": {
+    "executable": "gotstoy",
+    "args": [
+      "set",
+      {
+        "jsonInputArg": "--input",
+        "mandatory": true
+      }
+    ],
+    "implementsPretest": true,
+    "return": "state"
+  },
+  "exitCodes": {
+    "0": "Success",
+    "1": "Error",
+    "2": "Resource error",
+    "3": "JSON serialization error",
+    "4": "Invalid input",
+    "5": "Schema validation error",
+    "6": "Resource not found"
+  },
+  "schema": {
+    "embedded": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "description": "Golang TSToy Resource",
+      "properties": {
+        "ensure": {
+          "default": "present",
+          "description": "Defines whether the config file should exist.",
+          "enum": [
+            "present",
+            "absent"
+          ],
+          "type": "string"
+        },
+        "scope": {
+          "description": "Defines which of TSToy's config files to manage.",
+          "enum": [
+            "machine",
+            "user"
+          ],
+          "type": "string"
+        },
+        "updateAutomatically": {
+          "description": "Indicates whether TSToy should check for updates when it starts.",
+          "type": "boolean"
+        },
+        "updateFrequency": {
+          "description": "Indicates how many days TSToy should wait before checking for updates.",
+          "maximum": 90,
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "scope"
+      ],
+      "type": "object"
+    }
+  }
+}

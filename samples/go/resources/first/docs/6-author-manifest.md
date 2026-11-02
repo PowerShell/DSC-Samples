@@ -1,165 +1,96 @@
 ---
-title:  Step 6 - Author the DSC Resource manifest
+title:  Step 6 - Generate the DSC Resource manifest
 weight: 6
 dscs:
-  menu_title: 6. Author manifest
+  menu_title: 6. Generate the manifest
 ---
 
-The DSC Resource is now fully implemented. The last required step to use it with DSC is to author a
-resource manifest. Command-based DSC Resources must have a JSON file that follows the naming
-convention `<resource_name>.dsc.resource.json`. That's the manifest file for the resource. It
-informs DSC and other higher-order tools about how the DSC Resource is implemented.
+Command-based DSC Resources must have a manifest — a JSON file following the naming
+convention `<resource_name>.dsc.resource.json` — that tells DSC and higher-order tools
+how the resource is implemented: how to invoke each operation, what the instance schema
+is, and what the exit codes mean.
 
-Create a new file called `gotstoy.dsc.resource.json` in the project folder and open it.
+When authoring a resource by hand, writing the manifest and keeping it synchronized with
+the code is a meaningful chunk of the work. With dsc-go-rdk you don't write it at all: the
+library generates the manifest from the `ResourceConfig` plus the capabilities your
+handler actually implements, so the manifest can never drift from the code.
+
+## Inspect the generated manifest
+
+Every dsc-go-rdk resource has a `manifest` subcommand:
 
 ```sh
-touch ./gotstoy.dsc.resource.json
-code ./gotstoy.dsc.resource.json
+go run . manifest
 ```
 
-Add basic metadata for the DSC Resource.
+The command prints the manifest as one JSON line. To write it as a pretty-printed file
+with the conventional name, use `--out-dir`:
+
+```sh
+go build -o gotstoy .
+./gotstoy manifest --out-dir .
+```
+
+This creates `tstoy.example.gotstoy.dsc.resource.json` — the resource type name,
+lowercased, with `/` replaced by `.`:
 
 ```json
 {
-    "manifestVersion": "1.0",
-    "type": "TSToy.Example/gotstoy",
-    "version": "0.1.0",
-    "description": "A DSC Resource written in go to manage TSToy."
+  "$schema": "https://aka.ms/dsc/schemas/v3/bundled/resource/manifest.json",
+  "type": "TSToy.Example/gotstoy",
+  "version": "0.1.0",
+  "description": "A DSC Resource written in Go to manage TSToy.",
+  "tags": ["tstoy", "example", "go"],
+  "get": {
+    "executable": "gotstoy",
+    "args": ["get", { "jsonInputArg": "--input", "mandatory": true }]
+  },
+  "set": {
+    "executable": "gotstoy",
+    "args": ["set", { "jsonInputArg": "--input", "mandatory": true }],
+    "implementsPretest": true,
+    "return": "state"
+  },
+  "exitCodes": {
+    "0": "Success",
+    "1": "Error",
+    "2": "Resource error",
+    "3": "JSON serialization error",
+    "4": "Invalid input",
+    "5": "Schema validation error",
+    "6": "Resource not found"
+  },
+  "schema": {
+    "embedded": { "...": "the schema from step 2, embedded verbatim" }
+  }
 }
 ```
 
-To inform DSC about how to get the current state of an instance, add the `get` key to the manifest.
+Walking through what the library derived and from where:
 
-```json
-{
-    "manifestVersion": "1.0",
-    "type": "TSToy.Example/gotstoy",
-    "version": "0.1.0",
-    "description": "A DSC Resource written in go to manage TSToy.",
-    "get": {
-        "executable": "gotstoy",
-        "args": ["get"],
-        "input": "stdin"
-    }
-}
-```
+- The `$schema`, `type`, `version`, `description`, and `tags` come from your
+  `ResourceConfig`.
+- The `get` and `set` sections exist because your handler implements `Get` and `Set` —
+  nothing else. If you later add an `Export` method, an `export` section appears
+  automatically.
+- `{ "jsonInputArg": "--input", "mandatory": true }` tells DSC to pass the instance JSON
+  as the value of the `--input` argument — exactly the invocation you've been typing by
+  hand since step 1.
+- `implementsPretest` and `return: state` come from the `ImplementsPretest` and
+  `SetReturn` settings you added in step 5.
+- There's no `test` section: the handler doesn't implement a test operation, so DSC falls
+  back to its _synthetic test_ — it runs get and compares the actual state against the
+  desired state property by property. For this resource, that's exactly the right
+  behavior, so there's nothing to write.
+- The `exitCodes` table documents the codes you saw in step 3, letting DSC render friendly
+  messages when the resource fails.
+- `schema.embedded` is the full schema from step 2.
 
-The `executable` key indicates the name of the binary `dsc` should use. The `args` key indicates
-that `dsc` should call `gotstoy get` to get the current state. The `input` key indicates that `dsc`
-should pass the settings to the DSC Resource as a JSON blob over `stdin`. Even though the DSC
-Resource can use argument flags, setting this value to JSON makes the integration more robust and
-maintainable.
+## Manifest discovery
 
-Next, define the `set` key in the manifest to inform DSC how to enforce the desired state of an
-instance.
+DSC discovers resources by searching every folder in the `PATH` environment variable —
+and, if defined, `DSC_RESOURCE_PATH` — for files matching `*.dsc.resource.json`. With
+the manifest written next to the `gotstoy` binary and that folder in `PATH`, DSC can find
+and invoke the resource.
 
-```json
-{
-    "manifestVersion": "1.0",
-    "type": "TSToy.Example/gotstoy",
-    "version": "0.1.0",
-    "description": "A DSC Resource written in go to manage TSToy.",
-    "get": {
-        "executable": "gotstoy",
-        "args": ["get"],
-        "input": "stdin"
-    },
-    "set": {
-        "executable": "gotstoy",
-        "args": ["set"],
-        "input": "stdin",
-        "preTest": true,
-        "return": "state"
-    }
-}
-```
-
-In this section of the manifest, the `preTest` option indicates that the DSC Resource validates the
-instance state itself inside the set command. DSC won't test instances of the resource before
-invoking the set operation.
-
-This section also defines the `return` key as `state`, which indicates that the resource returns
-the current state of the instance when the command finishes.
-
-The last section of the manifest that needs to be defined is the `schema`.
-
-## Define the resource schema
-
-For this resource, add the JSON Schema representing valid settings in the `embedded` key. An
-instance of the resource must meet these criteria:
-
-1. The instance must be an object.
-1. The instance must define the `scope` property.
-1. The `scope` property must be a string and set to either `machine` or `user`.
-1. If the `ensure` property is specified, must be a string and set to either `present` or `absent`.
-   If `ensure` isn't specified, it should default to `present`.
-1. If the `updateAutomatically` property is specified, it must be a boolean value.
-1. If the `updateFrequency` property is specified, it must be an integer between `1` and `90`,
-   inclusive.
-
-```json
-{
-    "manifestVersion": "1.0",
-    "type": "TSToy.Example/gotstoy",
-    "version": "0.1.0",
-    "description": "A DSC Resource written in go to manage TSToy.",
-    "get": {
-        "executable": "gotstoy",
-        "args": ["get"],
-        "input": "stdin"
-    },
-    "set": {
-        "executable": "gotstoy",
-        "args": ["set"],
-        "input": "stdin",
-        "preTest": true,
-        "return": "state"
-    },
-    "schema": {
-        "embedded": {
-            "$schema": "https://json-schema.org/draft/2020-12/schema",
-            "title": "Golang TSToy Resource",
-            "type": "object",
-            "required": [
-                "scope"
-            ],
-            "properties": {
-                "scope": {
-                    "title": "Target configuration scope",
-                    "description": "Defines which of TSToy's config files to manage.",
-                    "type": "string",
-                    "enum": [
-                        "machine",
-                        "user"
-                    ]
-                },
-                "ensure": {
-                    "title": "Ensure configuration file existence",
-                    "description": "Defines whether the config file should exist.",
-                    "type": "string",
-                    "enum": [
-                        "present",
-                        "absent"
-                    ],
-                    "default": "present"
-                },
-                "updateAutomatically": {
-                    "title": "Should update automatically",
-                    "description": "Indicates whether TSToy should check for updates when it starts.",
-                    "type": "boolean"
-                },
-                "updateFrequency": {
-                    "title": "Update check frequency",
-                    "description": "Indicates how many days TSToy should wait before checking for updates.",
-                    "type": "integer",
-                    "minimum": 1,
-                    "maximum": 90
-                }
-            }
-        }
-    }
-}
-```
-
-When authoring a JSON Schema, always include the `title` and `description` keys for every property.
-Authoring tools, like VS Code, use those keys to give users context.
+You'll validate that integration in the next step.

@@ -5,8 +5,8 @@ dscs:
   menu_title: 1. Create the resource
 ---
 
-Create a new folder called `gotstoy` and open it in VS Code. This folder is the root folder for the
-project.
+Create a new folder called `gotstoy` and open it in VS Code. This folder is the root
+folder for the project.
 
 ```sh
 mkdir ./gotstoy
@@ -19,68 +19,104 @@ Open the integrated terminal in VS Code. In that terminal, initialize the folder
 go mod init "github.com/<your_github_id>/gotstoy"
 ```
 
-In this tutorial, you'll be creating a DSC Resource with [Cobra][01]. Cobra helps you create a
-command line application in Go. It handles argument parsing, setting flags, shell completions, and
-help.
+In this tutorial, you'll be creating the DSC Resource with [dsc-go-rdk][01]. dsc-go-rdk implements
+the Microsoft DSC command-based resource protocol: argument parsing, JSON input from `--input`
+or stdin, output framing, exit codes, schema generation, and manifest generation. The
+only code you write is the logic that manages TSToy.
 
-Use the following command to install `cobra-cli`.
+Add the library to your module:
 
 ```sh
-go install github.com/spf13/cobra-cli@latest
+go get github.com/LibreDsc/dsc-go-rdk@v0.1.0
 ```
 
-Use `cobra-cli` to scaffold the DSC Resource application and add the `get` and `set` commands.
+> If you're working with a local clone of dsc-go-rdk instead of the published module, point your
+> `go.mod` at it with a replace directive:
+>
+> ```text
+> replace github.com/LibreDsc/dsc-go-rdk => ../path/to/dsc-go-rdk
+> ```
 
-```sh
-cobra-cli init
-cobra-cli add get
-cobra-cli add set
+Create `main.go` with a minimal resource: a state struct, a handler with a stub `Get`
+method, and a `main` function that hands control to the library.
+
+```go
+package main
+
+import (
+    "context"
+
+    dsc "github.com/LibreDsc/dsc-go-rdk"
+)
+
+// Settings models one TSToy configuration file as DSC state.
+// You'll define the real properties in the next step.
+type Settings struct {
+    Scope string `json:"scope"`
+}
+
+// Handler implements the resource's operations.
+type Handler struct{}
+
+// Get is a stub for now: it echoes the input back.
+func (Handler) Get(_ context.Context, in Settings) (Settings, error) {
+    return in, nil
+}
+
+func main() {
+    r := dsc.MustResource[Settings](Handler{}, dsc.ResourceConfig{
+        Type:        "TSToy.Example/gotstoy",
+        Version:     "0.1.0",
+        Description: "A DSC Resource written in Go to manage TSToy.",
+        Tags:        []string{"tstoy", "example", "go"},
+    })
+    r.Main("gotstoy")
+}
 ```
 
-Run the following commands to get the Go modules you'll be using outside of the standard library.
+A few things to notice:
+
+- `dsc.MustResource[Settings]` binds your handler to its configuration and validates the
+  configuration at startup. The resource type name must match DSC's
+  `<owner>[.<group>][.<area>]/<name>` format and the version must be a semantic version.
+- The handler declares what the resource can do by which interfaces it implements. Right
+  now it only implements `Gettable[Settings]`, the one mandatory capability. As you add
+  `Set` in a later step, the resource (and its generated manifest) gain that
+  capability automatically.
+- `r.Main("gotstoy")` runs the full protocol CLI. The string is the executable name that
+  will be written into the generated manifest.
+
+Verify that the new application runs and has the expected commands.
 
 ```sh
-go get github.com/thediveo/enumflag@v0.10.1
-go get github.com/TylerBrock/colorjson@v0.0.0-20200706003622-8a50f05110d2
-go get github.com/knadh/koanf/maps@v0.1.1
-```
-
-The `enumflag` module simplifies using enumerations as command line flags. The `colorjson` module
-enables you to pretty-print output in the console. The `maps` module makes interacting with
-arbitrary maps easier.
-
-Verify that the new application can run and has the expected commands.
-
-```sh
-go run ./main.go
+go run . --help
 ```
 
 ```text
-A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.
+gotstoy - Microsoft DSC command-based resource: A DSC Resource written in Go to manage TSToy.
 
 Usage:
-  gotstoy [command]
+  gotstoy get|set|test|delete|export [--input <json>]
+  gotstoy set --what-if [--input <json>]
+  gotstoy schema
+  gotstoy manifest [--resource <type>] [--out-dir <dir>]
 
-Available Commands:
-  completion  Generate the autocompletion script for the specified shell
-  get         A brief description of your command
-  help        Help about any command
-  set         A brief description of your command
-
-Flags:
-  -h, --help     help for gotstoy
-  -t, --toggle   Help message for toggle
-
-Use "gotstoy [command] --help" for more information about a command.
+Input is read from --input or piped stdin. Output follows the Microsoft DSC JSON protocol.
 ```
 
-With the command scaffolded, you need to understand the application the DSC Resource manages before
-you can implement the commands. By now, you should have read [About the TSToy application][02].
+You already have a working protocol CLI. Try the stubbed get:
 
-[01]: https://cobra.dev/
+```sh
+go run . get --input '{ "scope": "machine" }'
+```
+
+```json
+{"scope":"machine"}
+```
+
+With the application scaffolded, you need to understand the application the DSC Resource
+manages before you can implement the operations. By now, you should have read [About the
+TSToy application][02].
+
+[01]: https://github.com/LibreDsc/dsc-go-rdk
 [02]: /tstoy/about
