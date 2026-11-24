@@ -1,0 +1,22 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+$schema: https://schemas.microsoft.com/dsc/2023/03/configuration.schema.json
+resources:
+- name: TSToy PowerShell resources
+  type: DSC/PowerShellGroup
+  properties:
+    resources:
+      - name: All Users Configuration
+        type: DscSamples.TailspinToys/PSTailspinToys
+        properties:
+          ConfigurationScope:  Machine
+          Ensure:              Present
+          UpdateAutomatically: false
+      - name: Current User Configuration
+        type: DscSamples.TailspinToys/PSTailspinToys
+        properties:
+          ConfigurationScope:  User
+          Ensure:              Present
+          UpdateAutomatically: true
+          UpdateFrequency:     30
